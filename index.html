@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <title>Painel Analítico de Filosofia | Dados por upload</title>
+  <!-- Usado apenas para ler planilhas Excel; CSV, TXT e JSON funcionam sem internet. -->
+  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <header class="topbar">
+      <div class="topbrand"><span class="pill">✦ Formadores em Ação</span><span class="pill secondary">Painel baseado em dados</span></div>
+      <div class="toolbar">
+        <button type="button" class="btn ghost" id="templateBtn">↓ Baixar modelo CSV</button>
+        <button type="button" class="btn danger" id="clearBtn" hidden>✕ Remover todos os dados</button>
+      </div>
+    </header>
+
+    <div class="title-area">
+      <h1>Painel Analítico de Filosofia</h1>
+      <p class="subtitle">Diagnóstico de feedbacks de formação docente. Indicadores, gráficos, filtros e sínteses são calculados exclusivamente a partir dos arquivos importados nesta sessão.</p>
+    </div>
+
+    <section class="upload-zone" id="dropZone" aria-label="Área de importação de arquivos">
+      <div class="upload-icon" aria-hidden="true">⇧</div>
+      <h2 id="uploadHeading">Importe os arquivos para começar</h2>
+      <p>Sem arquivos, sem indicadores simulados: os resultados só aparecem depois que houver registros válidos.</p>
+      <div class="actions" style="justify-content:center">
+        <button class="btn primary" id="chooseFilesBtn" type="button">＋ Selecionar arquivos</button>
+        <span class="muted" style="font-size:12px">ou arraste-os para esta área</span>
+      </div>
+      <input id="fileInput" type="file" accept=".csv,.txt,.json,.xlsx,.xlsm" multiple hidden aria-label="Selecionar arquivos de feedback" />
+      <div class="instructions">Formatos aceitos: <strong>CSV, TXT, JSON, XLSX e XLSM</strong>. Você pode importar vários arquivos, inclusive em etapas. No CSV, recomendamos os cabeçalhos <span class="column-names">reuniao, tipo, relato, turma, formador, componente</span>; os quatro primeiros seguem o padrão do arquivo original. Campos de identificação não preenchidos permanecem como “Não informado”. Arquivos Excel exigem conexão para carregar a biblioteca de leitura; macros de XLSM não são executadas.</div>
+    </section>
+    <div id="message" role="status" aria-live="polite" hidden></div>
+
+    <div id="emptyView" class="empty-only">
+      <b>Seu painel está pronto para receber os dados.</b>
+      Nenhum arquivo foi importado. Não há percentuais, diagnósticos, relatos ou conclusões exibidos neste momento.
+    </div>
+
+    <div id="dashboard" hidden>
+      <section class="section" aria-label="Arquivos carregados">
+        <div class="source-head">
+          <div><h2>Base de dados importada</h2><div class="muted" id="sourceDescription" style="font-size:12px"></div></div>
+          <div class="actions"><button type="button" class="btn primary" id="synthesisBtn">✧ Síntese para a gestão</button></div>
+        </div>
+        <div id="sourceList" class="source-list"></div>
+        <p class="chart-note">Os arquivos são processados localmente no navegador. Nenhum registro fica salvo neste painel depois que a página é fechada ou recarregada.</p>
+      </section>
+
+      <div class="metrics" aria-label="Indicadores calculados">
+        <div class="metric"><div class="metric-label">Total de relatos</div><div class="metric-number accent-purple" id="totalMetric">0</div><div class="metric-note" id="totalNote">Base importada</div></div>
+        <div class="metric"><div class="metric-label">Práticas / elogios</div><div class="metric-number accent-green" id="positiveMetric">—</div><div class="metric-note" id="positiveNote">Conforme a classificação informada</div></div>
+        <div class="metric"><div class="metric-label">Sugestões / alertas</div><div class="metric-number accent-amber" id="attentionMetric">—</div><div class="metric-note" id="attentionNote">Conforme a classificação informada</div></div>
+        <div class="metric"><div class="metric-label">Reuniões identificadas</div><div class="metric-number accent-blue" id="meetingMetric">0</div><div class="metric-note">Diferentes reuniões na seleção</div></div>
+      </div>
+
+      <section class="section" aria-label="Filtros dos dados">
+        <div class="section-head"><div><h2>Explorar os feedbacks</h2><p>Combine os filtros; os gráficos e indicadores acompanham a seleção.</p></div><button type="button" class="btn ghost" id="resetFiltersBtn">↶ Limpar filtros</button></div>
+        <div class="filters">
+          <div class="field"><label for="searchInput">Buscar no relato</label><input type="search" id="searchInput" placeholder="Palavra ou expressão" /></div>
+          <div class="field"><label for="meetingFilter">Reunião</label><select id="meetingFilter"><option value="">Todas as reuniões</option></select></div>
+          <div class="field"><label for="typeFilter">Classificação</label><select id="typeFilter"><option value="">Todas as classificações</option></select></div>
+          <div class="field"><label for="classFilter">Turma</label><select id="classFilter"><option value="">Todas as turmas</option></select></div>
+          <div class="field"><label for="trainerFilter">Formador</label><select id="trainerFilter"><option value="">Todos os formadores</option></select></div>
+          <div class="field"><label for="componentFilter">Componente</label><select id="componentFilter"><option value="">Todos os componentes</option></select></div>
+          <div class="field"><label for="sourceFilter">Arquivo de origem</label><select id="sourceFilter"><option value="">Todos os arquivos</option></select></div>
+        </div>
+        <div id="topicFilters" class="topics" aria-label="Filtros por temas mencionados"></div>
+      </section>
+
+      <section class="section" aria-label="Diagnóstico visual">
+        <div class="section-head"><div><h2>Diagnóstico dos relatos</h2><p>Gráficos calculados a partir dos dados filtrados, sem números predefinidos.</p></div></div>
+        <div class="charts">
+          <div class="chart-box"><h3>Distribuição por reunião</h3><div id="meetingBars" class="bars"></div><p class="chart-note">Contagem de relatos por reunião identificada no arquivo.</p></div>
+          <div class="chart-box"><h3>Classificação dos relatos</h3><div class="donut-wrap"><div class="donut" id="typeDonut"><div class="donut-center" id="donutCenter">—<small>relatos</small></div></div><div class="legend" id="typeLegend"></div></div><p class="chart-note">Percentuais calculados apenas entre relatos com tipo reconhecido. Os não classificados são informados separadamente.</p></div>
+        </div>
+      </section>
+
+      <section class="section" aria-label="Relatos da base de dados">
+        <div class="section-head"><div><h2>Relatos importados</h2><p>Textos originais do arquivo, sem reescrita ou exemplos artificiais.</p></div><span class="results-count" id="resultCount" aria-live="polite"></span></div>
+        <div id="feedbackList" class="feedbacks"></div>
+        <div id="noResults" class="not-found" hidden>Nenhum relato corresponde aos filtros atuais.</div>
+        <div class="actions" style="justify-content:center;margin-top:18px"><button type="button" id="moreBtn" class="btn ghost" hidden>Ver mais relatos</button></div>
+      </section>
+    </div>
+  </main>
+
+  <dialog id="synthesisDialog" aria-labelledby="synthesisTitle">
+    <div class="modal-content">
+      <h2 id="synthesisTitle">Síntese para a gestão</h2>
+      <p class="muted" style="font-size:12px">Síntese descritiva automática, calculada exclusivamente a partir dos registros filtrados. Não é uma análise por IA nem uma avaliação de desempenho.</p>
+      <div id="synthesisContent"></div>
+      <div class="modal-actions"><button class="btn ghost" id="downloadSynthesisBtn" type="button">↓ Baixar síntese (.txt)</button><button class="btn primary" id="closeDialogBtn" type="button">Fechar</button></div>
+    </div>
+  </dialog>
+  <footer>Painel Analítico de Filosofia · Versão com dados exclusivos do upload · Processamento local</footer>
+  <script src="script.js"></script>
+</body>
+</html>

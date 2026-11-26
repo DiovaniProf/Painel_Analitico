@@ -1,0 +1,32 @@
+PAINEL ANALÍTICO DE FILOSOFIA — PACOTE PARA GITHUB PAGES
+
+ARQUIVOS
+- index.html: estrutura da página (abrir no navegador)
+- style.css: aparência e layout responsivo
+- script.js: importação, filtros, indicadores, gráficos e síntese
+- Modelo_Feedbacks_Painel_Filosofia.csv: cabeçalho de referência para importar relatos
+
+COMO USAR
+1. Extraia este ZIP.
+2. Mantenha index.html, style.css e script.js juntos na MESMA pasta.
+3. Abra index.html no navegador (ou publique os arquivos no GitHub Pages).
+4. Clique em "Selecionar arquivos" e importe seus dados.
+5. Sem dados importados, o painel não exibe estatísticas, relatos ou sínteses.
+
+FORMATOS
+CSV, TXT estruturado, JSON, XLSX e XLSM.
+O arquivo CSV modelo indica as colunas sugeridas:
+reuniao;tipo;relato;turma;formador;componente
+
+ATENÇÃO
+- O uso de XLSX e XLSM requer conexão com a internet para carregar a
+  biblioteca SheetJS (CDN referenciado em index.html).
+- CSV, TXT e JSON são processados sem essa biblioteca.
+- Os arquivos são processados localmente; não são enviados a servidor pelo painel.
+- Ao recarregar a página, é necessário importar os dados novamente.
+- O texto da síntese é calculado a partir dos registros, sem geração por IA.
+
+GITHUB PAGES
+Envie os arquivos da pasta extraída diretamente para a RAIZ do repositório.
+Em Settings > Pages, selecione Deploy from a branch, main, /(root).
+Não envie apenas o arquivo ZIP: extraia e envie os arquivos individuais.
